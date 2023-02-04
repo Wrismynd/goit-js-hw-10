@@ -14,23 +14,22 @@ const refs = {
 const onSearchCountryInput = event => {
   const searchedQuery = event.target.value.trim();
   if (!searchedQuery) {
-    Notify.warning('Введіть назву країни');
-    clearCountryInfo();
+    Notify.warning('Please enter the country');
+    removeCountryInfo();
     clearCountryList();
     return;
   }
   fetchCountryAPI(searchedQuery)
     .then(data => {
       if (data.length > 10) {
-        clearCountryInfo();
+        removeCountryInfo();
         clearCountryList();
         Notify.info(
           'Too many matches found. Please enter a more specific name.'
         );
       }
-
       if (data.length >= 2 && data.length <= 10) {
-        clearCountryInfo();
+        removeCountryInfo();
         renderCountryList(data);
       }
       if (data.length === 1) {
@@ -41,7 +40,7 @@ const onSearchCountryInput = event => {
     .catch(err => {
       if (err.message === '404') {
         Notify.failure('"Oops, there is no country with that name"');
-        clearCountryInfo();
+        removeCountryInfo();
         clearCountryList();
       }
       console.log(err);
@@ -53,49 +52,57 @@ refs.searchCountry.addEventListener(
   debounce(onSearchCountryInput, DEBOUNCE_DELAY)
 );
 
+// RENDER COUNTRY LIST (in future add link)
 function renderCountryList(data) {
-  const markup = data.map(({ name: { official }, flags: { svg, alt } }) => {
+  const markup = data.map(({ name: { common }, flags: { svg, alt } }) => {
     return `
     <li class="country-item">
-      <img width="25px" src="${svg}" alt="${alt}">
-      <p>${official}</p>
+      <a class="country-item-link" href="https://www.google.com/search?q=${common}"> 
+        <img class="img-flag" src="${svg}" alt="${alt}">
+        <span>${common}</span>
+      </a>
     </li>
       `;
   });
 
-  refs.countryList.innerHTML = markup;
+  refs.countryList.innerHTML = markup.join('');
+  refs.countryList.classList.add('country-list-js');
 }
+// END RENDER COUNTRY LIST
 
+// RENDER COUNTRY CARD (INFO)
 function renderCountryCard(data) {
   const markup = data
-
     .map(
       ({
-        name: { official },
+        name: { common },
         flags: { svg, alt },
         capital,
         population,
         languages,
       }) => {
-        return `
-      <div>
-        <img width="25px" src="${svg}" alt="${alt}">
-        <h2 style="display: inline">${official}</h2>
-      </div>
-      <p><b>Capital:</b> ${capital}</p>
-      <p><b>Population:</b> ${population}</p>
-      <p><b>Languages:</b> ${Object.values(languages).join(', ')}</p>
-      `;
+        return `<li class="country-info-item">
+        <div>
+          <img class="img-flag" src="${svg}" alt="${alt}">
+          <h2 style="display: inline">${common}</h2>
+        </div>
+        <p><b>Capital:</b> ${capital}</p>
+        <p><b>Population:</b> ${population}</p>
+        <p><b>Languages:</b> ${Object.values(languages).join(', ')}</p>
+      </li>`;
       }
     )
     .join('');
-  refs.countryInfo.innerHTML = markup;
+  refs.countryInfo.insertAdjacentHTML('afterbegin', markup);
+  refs.countryInfo.classList.add('country-info-js');
 }
+// END RENDER COUNTRY CARD (INFO)
 
 function clearCountryList() {
   refs.countryList.innerHTML = '';
+  refs.countryList.classList.remove('country-list-js');
 }
 
-function clearCountryInfo() {
-  refs.countryInfo.innerHTML = '';
+function removeCountryInfo() {
+  refs.countryInfo.classList.remove('country-info-js');
 }
