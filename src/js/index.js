@@ -15,34 +15,33 @@ const onSearchCountryInput = event => {
   const searchedQuery = event.target.value.trim();
   if (!searchedQuery) {
     Notify.warning('Please enter the country');
-    removeCountryInfo();
+    clearCountryInfo();
     clearCountryList();
     return;
   }
   fetchCountryAPI(searchedQuery)
     .then(data => {
       if (data.length > 10) {
-        removeCountryInfo();
+        clearCountryInfo();
         clearCountryList();
         Notify.info(
           'Too many matches found. Please enter a more specific name.'
         );
       }
       if (data.length >= 2 && data.length <= 10) {
-        removeCountryInfo();
+        clearCountryInfo();
         renderCountryList(data);
       }
       if (data.length === 1) {
+        clearCountryInfo();
         clearCountryList();
         renderCountryCard(data);
       }
     })
     .catch(err => {
-      if (err.message === '404') {
-        Notify.failure('"Oops, there is no country with that name"');
-        removeCountryInfo();
-        clearCountryList();
-      }
+      Notify.failure('Oops, there is no country with that name');
+      clearCountryInfo();
+      clearCountryList();
       console.log(err);
     });
 };
@@ -103,6 +102,7 @@ function clearCountryList() {
   refs.countryList.classList.remove('country-list-js');
 }
 
-function removeCountryInfo() {
+function clearCountryInfo() {
+  refs.countryInfo.innerHTML = '';
   refs.countryInfo.classList.remove('country-info-js');
 }
